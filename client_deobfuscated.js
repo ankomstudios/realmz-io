@@ -1879,57 +1879,112 @@ async function q() {
                 'error': () => {}
             };
             this._funcsBin = {};
+// Prevent send/emit from accessing an undefined socket
+// while _setupSocket waits for server selection.
+            this.ws = {
+                readyState: 3,
+                bufferedAmount: 0,
+                close: () => {},
+                send: () => {}
+};
+
             this._setupSocket(Kx, Ky, KK ?? {});
             this.dataTransfer = 0;
         }
-async _setupSocket(Kx, Ky) {
-    // Keep ws defined while server selection is running.
-    this.ws = {
-        readyState: 3,
-        send() {},
-        close() {}
-    };
+async _setupSocket(Kx, Ky, KK) {
+    let KO = 'ws://';
+
+    if (location.protocol.match(/https/)) {
+        KO = 'wss://';
+    }
 
     if (Kx == null) {
-        Kx = await q();
+        const KQ = await q();
+
+        if (KQ == null) {
+            this.ws = {
+                readyState: 3,
+                bufferedAmount: 0,
+                close: () => {},
+                send: () => {}
+            };
+            return;
+        }
+
+        Kx = /^wss?:\/\//.test(KQ) ? KQ : KO + KQ;
     }
 
-    if (!Kx) {
-        console.error("[Realmz] No WebSocket server configured.");
-        return;
+    if (!Kx.match(/^wss?:\/\//)) {
+        Kx = KO + Kx;
     }
 
-    let socketUrl = String(Kx).trim();
-
-    if (/^https:\/\//i.test(socketUrl)) {
-        socketUrl = socketUrl.replace(/^https:\/\//i, "wss://");
-    } else if (/^http:\/\//i.test(socketUrl)) {
-        socketUrl = socketUrl.replace(/^http:\/\//i, "ws://");
-    } else if (!/^wss?:\/\//i.test(socketUrl)) {
-        socketUrl = (window.location.protocol === "https:" ? "wss://" : "ws://")
-            + socketUrl;
+    if (Ky == null) {
+        Ky = [];
     }
 
-    socketUrl = b(socketUrl, Ky);
+    Kx = b(Kx, Ky);
 
-    console.log("[Realmz] WebSocket URL:", socketUrl);
+    console.log("[Realmz] WebSocket URL:", Kx);
 
-    this.ws = new WebSocket(socketUrl);
+    // IMPORTANT: Keep Ky as the second argument.
+    // This supplies Sec-WebSocket-Protocol during the handshake.
+    this.ws = new WebSocket(Kx, Ky);
+    this.ws.binaryType = 'arraybuffer';
 
-    this.ws.addEventListener("open", () => {
-        // Keep any existing open-handler logic here if your original method has it.
+    this.ws.addEventListener('open', Ku => {
+        (KK.open ?? (() => {}))();
+        this._funcs?.open(Ku, KK.join);
     });
 
-    this.ws.addEventListener("message", (event) => {
-        // Keep any existing message-handler logic here if your original method has it.
+    this.ws.addEventListener('close', Ku => {
+        this._funcs?.close(Ku);
     });
 
-    this.ws.addEventListener("close", (event) => {
-        console.warn("[Realmz] WebSocket closed:", event.code, event.reason);
+    this.ws.addEventListener('error', Ku => {
+        console.log(Ku);
+        this._funcs?.error(Ku);
     });
 
-    this.ws.addEventListener("error", (event) => {
-        console.error("[Realmz] WebSocket error:", event);
+    this.ws.addEventListener('message', Ku => {
+        const KW = new Blob([Ku]).size;
+        this.dataTransfer += KW;
+
+        try {
+            if (typeof Ku.data != 'string') {
+                let Ks = new Uint8Array(Ku.data);
+
+                if (Ks[0] in this._funcsBin) {
+                    this._funcsBin[Ks[0]](Ks);
+                }
+
+                return;
+            }
+
+            if (typeof Ku.data == 'string') {
+                if (Ku.data[0] in this._funcsBin) {
+                    this._funcsBin[Ku.data[0]](Ku.data);
+                    return;
+                }
+            }
+
+            if (Ku.data[0] != '[') {
+                return;
+            }
+
+            Ku = JSON.parse(Ku.data);
+
+            let KB = Ku[0];
+            let Kl = Ku[1];
+
+            if (!(KB in this._funcs)) {
+                return;
+            }
+
+            this._funcs[KB](...Kl);
+        } catch (KZ) {
+            console.log(KZ);
+            console.log(Ku.data);
+        }
     });
 }
         ['test']() {
