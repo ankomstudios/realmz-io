@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--
+  PYRUS 
+  -->
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="keywords" content="realmz.io, realmz, io game, multiplayer browser game, free online game, pvp game, survival io game, battle game, mmo io, browser io games">
+    <meta name="description" content="Play realmz.io free in your browser! Battle other players and powerful enemies, level up, unlock weapons and skins, and dominate the realm in this fast-paced multiplayer io game. No download required.">
+    <meta name="realmz-device-type" content="browser">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+    <meta name="author" content="FuturePear Studios">
+    <link rel="canonical" href="https://realmz.io/">
+    <title>realmz.io</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Metamorphous&family=Quicksand:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./stylesheets/index.css">
+    <link rel="stylesheet" href="./stylesheets/browser.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+
+
+    <!--favicons-->
+    <link rel="apple-touch-icon" sizes="180x180" href="https://realmz.io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="https://realmz.io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="https://realmz.io/favicon-16x16.png">
+    <!--<link rel="manifest" href="https://realmz.io/manifest_pc.json">-->
+    <link rel="mask-icon" href="https://realmz.io/safari-pinned-tab.svg" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+
+    <!-- Open Graph and Twitter Card for Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="realmz.io">
+    <meta property="og:url" content="https://realmz.io/">
+    <meta property="og:title" content="realmz.io">
+    <meta property="og:description" content="Battle other players and powerful enemies, level up, and dominate the realm in this fast-paced multiplayer io game. Play free in your browser — no download required.">
+    <meta property="og:image" content="https://realmz.io/images/realmz.png">
+    <meta property="og:image:width" content="959">
+    <meta property="og:image:height" content="275">
+    <meta property="og:image:alt" content="realmz.io logo">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="realmz.io - Free Multiplayer Browser Battle Game">
+    <meta name="twitter:description" content="Battle other players and powerful enemies, level up, and dominate the realm in this fast-paced multiplayer io game. Play free in your browser — no download required.">
+    <meta name="twitter:image" content="https://realmz.io/images/realmz.png">
+
+    <!-- Generic image link used by some scrapers/hover-preview tools -->
+    <link rel="image_src" href="https://realmz.io/images/realmz.png">
+
+    <!-- Structured data for search engines -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "VideoGame",
+        "name": "realmz.io",
+        "alternateName": "Realmz",
+        "url": "https://realmz.io/",
+        "image": "https://realmz.io/images/realmz.png",
+        "description": "realmz.io is a free multiplayer browser io game where you battle other players and powerful enemies, level up, unlock weapons and skins, and dominate the realm. No download required.",
+        "genre": ["Action", "Multiplayer", "IO Game", "PvP"],
+        "gamePlatform": ["Web Browser", "PC", "Mobile"],
+        "playMode": "MultiPlayer",
+        "applicationCategory": "Game",
+        "operatingSystem": "Any (web browser)",
+        "author": {
+            "@type": "Organization",
+            "name": "FuturePear Studios",
+            "url": "https://realmz.io/about"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "FuturePear Studios"
+        }
+    }
+    </script>
+
+    <!-- ADINPLAY ads -->
+<script>
+    window.aiptag = window.aiptag || { cmd: [] };
+    aiptag.cmd.display = aiptag.cmd.display || [];
+    aiptag.cmd.player = aiptag.cmd.player || [];
+    //CMP tool settings
+    //console.clear();  return;
+    aiptag.cmp = {
+        show: true,
+        position: "centered",  //centered, bottom
+        button: true,
+        buttonText: "Privacy settings",
+        buttonPosition: "bottom-left" //bottom-left, bottom-right, top-left, top-right
+    }
+    aiptag.cmd.player.push(function () {
+        aiptag.adplayer = new aipPlayer({
+            AIP_REWARDEDNOTGRANTED: function (state)  {
+                //This event is fired when a rewarded ad is:
+                //timed out, empty, unsupported or closed by the user.
+                //don't grand the reward here
+                if (typeof window.onRewardedAdNotGranted === "function") window.onRewardedAdNotGranted(state);
+            },
+            AIP_REWARDEDGRANTED: function ()  {
+                //the actual reward is granted server-side via the client hook below
+                if (typeof window.onRewardedAdGranted === "function") window.onRewardedAdGranted();
+            },
+            AD_WIDTH: 960,
+            AD_HEIGHT: 540,
+            AD_DISPLAY: 'default', //default, fullscreen, center, fill
+            LOADING_TEXT: 'loading advertisement',
+            PREROLL_ELEM: function () { return document.getElementById('preroll') },
+            AIP_COMPLETE: function (state) {
+                /*******************
+                 ***** WARNING *****
+                    *******************
+                    Please do not remove the PREROLL_ELEM
+                    from the page, it will be hidden automaticly.
+                */
+                alert("Preroll Ad Completed: " + state);
+            }
+        });
+        //console.clear();
+    });
+
+    function show_preroll(adUnit) {
+        //check if the adslib is loaded correctly or blocked by adblockers etc.
+        if (typeof aiptag.adplayer !== 'undefined') {
+            aiptag.cmd.player.push(function () { aiptag.adplayer.startPreRoll(adUnit); });
+        } else {
+            //Adlib didnt load this could be due to an adblocker, timeout etc.
+            //Please add your script here that starts the content, this usually is the same script as added in AIP_COMPLETE.
+            alert("Ad Could not be loaded, load your content here");
+        }
+    }
+
+</script>
+
+<script async src="//api.adinplay.com/libs/aiptag/pub/ERT/realmz.io/tag.min.js"></script>
+
+    <!-- Google Tag Manager -->
+    <script>
+    (function (w, d, s, l, i) {
+        w[l] = w[l] || []; w[l].push({
+            'gtm.start':
+                new Date().getTime(), event: 'gtm.js'
+        }); var f = d.getElementsByTagName(s)[0],
+            j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : ''; j.async = true; j.src =
+                'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+        })(window, document, 'script', 'dataLayer', 'GTM-K7QC7DF');</script>
+    <!-- End Google Tag Manager -->
+
+    <script>
+        // Capture Play/Enter before the main client bundle has finished loading.
+        window.__realmzEarlyJoinRequested = false;
+        window.__realmzEarlyJoinAnimation = null;
+        window.join = function () {
+            if (window.__realmzEarlyJoinRequested) return;
+            window.__realmzEarlyJoinRequested = true;
+
+            const title = document.getElementById("titleContainer");
+            const screen = document.getElementById("enteringGameScreen");
+            const text = document.getElementById("enteringGameText");
+            if (title != null) title.style.display = "none";
+            if (screen != null) screen.style.display = "flex";
+
+            let dots = 3;
+            const updateText = () => {
+                if (text != null) text.textContent = `Entering game${".".repeat(dots)}`;
+                dots = dots % 3 + 1;
+            };
+            updateText();
+            window.__realmzEarlyJoinAnimation = setInterval(updateText, 350);
+        };
+
+        window.__realmzEarlyEnterHandler = function (event) {
+            if (event.key !== "Enter") return;
+            event.preventDefault();
+            window.join();
+        };
+        document.addEventListener("keydown", window.__realmzEarlyEnterHandler);
+    </script>
+
+</head> 
+<body>
+
+    <!-- Google Tag Manager (noscript) -->
+    <noscript>
+        <iframe src="https://www.googletagmanager.com/ns.html?id=GTM-K7QC7DF"
+                height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
+
+    <div id="enteringGameScreen" role="status" aria-live="polite">
+        <p id="enteringGameText">Entering game...</p>
+    </div>
+
+    <!-- SEO content: describes the page for search engines & screen readers without affecting the game UI -->
+    <section style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">
+        <h1>realmz.io — Free Multiplayer Browser Battle Game</h1>
+        <p>realmz.io is a free multiplayer io game you can play right in your browser, with no download or install required. Fight other players and powerful enemies, level up your character, unlock new weapons and skins, and dominate the realm in fast-paced PvP battles.</p>
+        <h2>How to play realmz.io</h2>
+        <p>Move with WASD or the arrow keys, attack to defeat enemies and other players, collect stars and loot, and climb the leaderboard. Create a free account to save your progress, earn coins, complete missions, and customize your character with skins.</p>
+        <h2>Features</h2>
+        <ul>
+            <li>Free to play multiplayer io game in your browser</li>
+            <li>Real-time PvP battles against players around the world</li>
+            <li>Level up, unlock weapons, and upgrade your character</li>
+            <li>Collect coins, complete daily missions, and unlock skins</li>
+            <li>Global leaderboards, clans, and an active community</li>
+        </ul>
+        <p>Join the realmz.io community on <a href="https://discord.gg/9UtQHeEy73">Discord</a>, and learn more <a href="/about">about the game</a> or read the <a href="/changelog">latest updates</a>.</p>
+    </section>
+
+    <p id="count">0</p>
+    <p style="color: white; position: absolute; z-index: 1000; top: 0px; padding: 0; margin: 0; left: 5px;"></p>
+    <div id="notificationCenterTop">
+    </div>
+    <div id="xpbar">
+        Xp: <a id="xp">0</a>
+    </div>
+    <div id="lb" style="display: none;">
+        <p id="lbheader">Leaderboard</p>
+        <div id="lblist">
+        </div>
+        <div id="gamemodeInfo"></div>
+    </div>
+    <div id="weaponSelector">
+        <div style="display: flex; z-index: 12940; z-index: 12940; width: 70%; justify-content: center;">
+
+            <!--<p class="weaponSelectorText">Choose a weapon!</p>
+            <div style="width: 20%;"></div>-->
+            <div id="weaponHideButton" class="weaponSelectorText" onclick="toggleWeapons()"> Hide Evolutions </div>
+        </div>
+        <!--<div style="width: 93%; background: #4C6761; height: 4px;  z-index: 12940;"></div>-->
+
+        <div id="inner">
+
+        </div>
+    </div>
+
+    <div id="weaponTreeWrapper">
+        <canvas id="weaponTree" width="1000" height="1000"></canvas>
+    </div>
+
+    <div id="upgradebar"></div>
+    <div id="upgradecounttoggle" onclick="hideupgrades()" style="visibility: hidden;">upgrades</div>
+    <div id="gameInfoMenu">
+
+        <div id="upgradecountwrapper">
+
+            <div id="upgradecount">
+
+            </div>
+        </div>
+    </div>
+
+    <p id="infoText"></p>
+    <div id="notificationCenterMiddle">
+        <!--<div class="mainNotification">Hello</div>-->
+    </div>
+
+    <div id="global-chat" style="visibility: hidden;">
+        <div id="messages" style="height: 90%;">
+            <p>Welcome to the Global Chat</p>
+            <p>Press enter to talk</p>
+        </div>
+        <input id="message" class="text" type="checkbox">
+    </div>
+
+
+    <canvas width=1300 height=800 id=canvas style=""></canvas>
+    <canvas width=960 height=540 id=shadowCanvas style=""></canvas>
+    <canvas width=1920 height=300 id=guiCanvas></canvas>
+
+    <div id="notificationCenter">
+        <div id="notification_stealth"></div>
+        <div id="notification_frozen"></div>
+        <div id="notification_auto"></div>
+    </div>
+    <canvas id="minimap" width=10 height=10 style="display: none;">
+    </canvas>
+    <p id="mapname">mapname</p>
+
+    <div id="statusscreen">
+        Connecting...
+    </div>
+    <!-- MOBILE CONTROLS -->
+    
+    
+    <div id="mobile" class="unselectable" style="visibility: hidden;">
+        <!-- <canvas id="joystick" width=300 height=300></canvas> -->
+        <div>
+            <div class="mobilebig mobileControlLeftup" z="leftup"></div> 
+            <div class="mobilebig mobileControlUp" z="up"></div> 
+            <div class="mobilebig mobileControlRightup" z="rightup"></div> 
+            <!--<div class="mobilesmall" z="freeze">freeze</div> -->
+        </div>
+        <div style="justify-content: flex-end;">
+            <!-- <div class="mobilesmall" z="stealth">stealth</div> -->
+            <div class="mobilebig mobileControlDash" z="dash"></div>
+            <div class="mobilebig mobileControlAttack" z="attack"></div>
+        </div>
+        <div>
+            <div class="mobilebig mobileControlLeft" z="left"></div>
+            <div class="mobilebig mobileControlUp mobileInvis" z=""></div>
+            <div class="mobilebig mobileControlRight" z="right"></div>
+        </div>
+        <div style="justify-content: flex-end;">
+            
+            
+        </div>
+    </div>
+    <!-- <div id="advertisement">
+        <a href="https://iogames.space" style="margin-bottom: -200px;"> play  .io games</a>
+    </div> -->
+    <div id="startingMessage" style="visibility: hidden;">
+
+    </div>
+    <div id="console" style="visibility: hidden;">
+    </div>
+    <div id="fullscreen" onclick="settings()">
+        <img src="https://realmz.io//images/icons/gear.png" style="width: 100%; height: 100%;" />
+    </div>
+    <div id="settingsbox" class="submenu">
+        Settings
+        <x onclick="settings()">X</x>
+        <div style="display: flex; height: 100%;">
+            <div id="thesettings" style="width: 80%;">
+                <button onclick="fullscreen()" class="sbu">Enable Fullscreen</button>
+                <button class="sbu">Show Chat<input id="settingscheckboxchat" type="checkbox" checked onclick="chgs('chat')"></input></button>
+                <button class="sbu">Draw Background<input id="settingscheckboxbackground" type="checkbox" checked onclick="chgs('background')"></input></button>
+                <button class="sbu">Draw Clouds<input id="settingscheckboxclouds" type="checkbox" checked onclick="chgs('clouds')"></input></button>
+                <button class="sbu">Show Names<input id="settingscheckboxnames" type="checkbox" checked onclick="chgs('names')"></input></button>
+                <button class="sbu">High Detail Mode<input id="settingscheckboxhighdetail" type="checkbox" onclick="chgs('highdetail')"></input></button>
+                <button class="sbu">Hide Particles<input id="settingscheckboxdrawparticles" type="checkbox" onclick="chgs('drawparticles')"></input></button>
+                <button class="sbu">Show Device Type<input id="settingscheckboxshowdevice" type="checkbox" onclick="chgs('showdevice')"></input></button>
+
+                <button onclick="changeFilter()" class="sbu">Change Filter</button>
+                <button onclick="resetKeybinds()" class="sbu">Reset Keybinds</button>
+                <button onclick="openAutoUpgradeMenu()" class="sbu">Auto Upgrade</button>
+
+                
+                <div class="sbu" style="display: flex; align-items: center; gap: 10px; width: min-content;">
+                    <label for="musicVolumeSlider" style="flex: 1;">Music Volume</label>
+                    <input id="settingscheckboxmusicVolume" type="range" min="0" max="100" value="50" style="flex: 2;" onchange="setsettings('musicVolume', this.value)">
+                    <!-- <span id="musicVolumeValue" style="width: 20px;">50</span> -->
+                </div>
+                <div class="sbu" style="display: flex; align-items: center; gap: 10px; width: min-content;">
+                    <label for="soundVolumeSlider" style="flex: 1;">Sound Volume</label>
+                    <input id="settingscheckboxsoundVolume" type="range" min="0" max="100" value="50" style="flex: 2;" onchange="setsettings('soundVolume', this.value)">
+                    <!-- <span id="soundVolumeValue" style="width: 20px;">50</span> -->
+                </div>
+               
+            </div>
+            <div id="keybindsbox" style="width: 20%;">
+                <p style="font-size: 3vh;">Keybinds</p>
+                <div><button id="keybindautoattack" onclick="keybind('autoattack')">e</button> Auto Attack</div>
+                <div><button id="keybindstealth" onclick="keybind('stealth')">i</button> Stealth</div>
+                <div><button id="keybindattack" onclick="keybind('attack')">o</button> Attack</div>
+                <div><button id="keybindfreeze" onclick="keybind('freeze')">p</button> Freeze</div>
+                <div><button id="keybinddash" onclick="keybind('dash')">Spacebar</button> Dash</div>
+                <div><button id="keybindleft" onclick="keybind('left')">a</button> Left</div>
+                <div><button id="keybindright" onclick="keybind('right')">d</button> Right</div>
+                <div><button id="keybindjump" onclick="keybind('jump')">w</button> Jump</div>
+            </div>
+        </div>
+    </div>
+    <div class="window" id="autoUpgradeMenu" style="visibility: hidden;">
+        <div class="window-top" type="dragWindow" target="autoUpgradeMenu">
+            <p class="window-title">Auto Upgrade</p>
+            <div style="flex-grow: 2;"></div>
+            <div class="window-close" type="closeWindow" target="autoUpgradeMenu"></div>
+        </div>
+        <div class="window-content auto-upgrade-content">
+            <label class="auto-upgrade-enabled">
+                Enable Auto Upgrade
+                <input id="settingscheckboxautoUpgrade" type="checkbox" onchange="setAutoUpgradeEnabled(this.checked)">
+            </label>
+            <div id="autoUpgradeLevels"></div>
+            
+            <div class="auto-upgrade-import-export">
+                <button onclick="exportAutoUpgrades()">Export</button>
+                <input id="autoUpgradeImport" type="text" placeholder="Paste upgrade preset here" autocomplete="off" spellcheck="false">
+                <button onclick="importAutoUpgrades()">Import</button>
+            </div>
+        </div>
+    </div>
+    <div id="help" class="submenu">
+        <x onclick="help()">X</x>
+    </div>
+
+    <div id="statusbox">
+
+    </div>
+    <p id="statusthing"></p>
+    <div id="timer" style="text-shadow: 0px 0px 5px #000000; color: white; font-weight: 800; font-family: arial; font-size: 2em; position: absolute; right: 10px; top: 40px; visibility: hidden;">5:00</div>
+
+
+    <div class="window" id="slideShowContainer" style="visibility: hidden;">
+        <div class="window-top" type="dragWindow" target="slideShowContainer">
+            <p class="window-title">Tutorial (1/5) - Click to next slide</p>
+            <div style="flex-grow: 2;"></div>
+            <div class="window-close" type="closeWindow" target="slideShowContainer"></div>
+        </div>
+        <div class="window-content">
+            <img src="https://realmz.io/images/tutorial/slideshow1.png" id="slideshowimage" onclick="nextTutorialSlide()"></img>
+        </div>
+    </div>
+
+    <div class="window" id="inventoryContainer" style="visibility: hidden; resize: both; height: 400px; width: 432px;">
+        <div class="window-top" type="dragWindow" target="inventoryContainer">
+            <p class="window-title">Inventory</p>
+            <div style="flex-grow: 2;"></div>
+            <div class="window-close" type="closeWindow" target="inventoryContainer"></div>
+        </div>
+        <!--<p id="inventoryInfo">Weight: 0kg/100kg</p>-->
+        <div class="window-content" id="inventory">
+        </div>
+    </div>
+
+    <div id="escapeScreen" class="blurbg">
+        <p id="escapeScreenServerInfo"></p>
+        <button onclick="toggleEscapeScreen()" class="blueTheme">Back To Game</button>
+        <button onclick="settings()" class="blueTheme">Settings</button>
+        <button onclick="document.getElementById('slideShowContainer').style.visibility = 'visible';" class="blueTheme">Help</button>
+        <button onclick="" class="blueTheme">Disconnect</button>
+    </div>
+
+    <!-- RIP BOX -->
+    <div id="DEATH_SCREEN_BOX" style="visibility: hidden; position: absolute; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; flex-direction: column; background: rgba(0, 0, 0, 0.3);">
+        <div id="deathScreenCard">
+            <div id="deathScreenSpacer"></div>
+            <p id="DEATH_INFO"></p>
+            <div id="deathWeaponProgress" hidden></div>
+            <button id="deathRespawnButton"></button>
+            <button id="gravestoneButton">MAIN MENU</button>
+        </div>
+
+
+        <div id='realmz-io_970x250' style=" width: 970px; height: 250px; max-height: 250px; display: flex; justify-content: center;">
+            <script type='text/javascript'>
+                //aiptag.cmd.display.push(function () { aipDisplayTag.display('realmz-io_970x250'); });
+            </script>
+        </div>
+
+    </div>
+    <!--END RIP BOX-->
+    <!--              -->
+    <div id="titleContainer" class="blurbg" style="width: 100%; height: 100%; background: rgba(0, 0, 0, 0.45);">
+
+        <!-- <div id='realmz-io_728x90' class="erth2-party" style="height: 90px; width: 728px; position: absolute; bottom: 0;">
+            <script type='text/javascript'>
+                aiptag.cmd.display.push(function () { aipDisplayTag.display('realmz-io_728x90'); });
+            </script>
+        </div> -->
+
+
+        <div id="joinScreen3">
+
+
+            <div id="COSMETICS" class="titleScreenbox" style="width: 100%; visibility: hidden; position: absolute; font-family: quicksand; gap: 0px;">
+                <div class="blueTheme" id="cosmeticTitle" style="display: flex;">
+                    <!-- <button z="cosmeticContainer">Account</button> -->
+                    <button z="cosmeticContainer">Cosmetics</button>
+                    <button z="shopContainer">Shop</button>
+                    <!-- <button z="eventContainer">Progression</button> -->
+                    <button z="missionsContainer">Missions</button>
+                    <button z="leaderboardContainer">Leaderboard</button>
+                    <button onclick="window.open('/v2', '_blank')">Clans</button>
+                    <!-- <button z="eventContainer">Events</button> -->
+                    <button onclick="cosmetics(0)">Exit</button>
+                </div>
+                <div id="cosmeticContainer" style="">
+                    <div id="skinselector" style="background: #c6c4b8; width:25%;"></div>
+                    <div style="display: grid; grid-template-rows: 40% 60%; width: 40%;">
+                        <div style="background-image: url('https://realmz.io/images/skinpreview.png'); background-size: cover; display: flex; justify-content: center;">
+                            <canvas id="skinPreview" width=500 height=500 style="height: 80%; aspect-ratio: 1/1;"></canvas>
+                        </div>
+                        <div style="background: #F4F1E1; width: 100%; display: flex; flex-direction: column; height: 100%;">
+                            <p id="cscoins" style="height: 5%; text-align: center; font-weight: 700;">loading...</p>
+                            <b style="height: min-content; background: #BCB9A9; width: 100%; text-indent: 10px;">Lootboxes:</b>
+                            <div id="cratesArea" style="height: 100%; width: 100%;">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div style="width: 35%; display:flex; flex-direction: column; background: #F4F1E1; box-sizing: border-box;">
+                        <div style="text-align: center; background: #5E7671; font-size: 2em; color: #F4F1E1; font-weight: 800;">Hands</div>
+                        <div>Enable Hands<input id="account_hands_enable" type="checkbox" onclick="toggleHands()"></input></div>
+                        <div style="text-align: center;  background: #5E7671; font-size: 2em; color: #F4F1E1; font-weight: 800;">Deals</div>
+                        
+                            <a href="https://discord.gg/9UtQHeEy73" style="text-align: center; font-size: 1.0em; margin: 10px;">Join the discord server to get a special skin and 2000 coins!</a>
+                            <p style="margin: 0;">On discord you can chat with other players and see sneak peeks!</p>
+                            <br>
+                            <button id="watchAdButton" class="" style="margin: 10px; padding: 8px;" onclick="showRewardedAd()">Watch ad for coins</button>
+
+                        <div style="text-align: center;  background: #5E7671; font-size: 2em; color: #F4F1E1; font-weight: 800;">Comms Hub</div>
+                        <p style="margin: 0; padding-left: 5px;">Info, updates, polls, and more!</p>
+                        <div style="width: 98%; align-self: center; flex-grow: 1; overflow: scroll; border-inline: 1px solid black; background: rgba(255, 255, 255, 0.5); box-sizing: border-box;" id="comms">
+                            
+                        </div>
+                        <div style="display: flex;">
+                        <textarea id="devMessage" style="width: 100%;" placeholder="Message Developers. Your account needs 5000 stars for messages to be sent."></textarea>
+                        <button onclick="sendDeveloperMessage()">Send</button>
+                        </div>
+                    </div>
+                </div>
+                <div id="leaderboardContainer" style="visibility: hidden; width: 0; height: 0; display: flex; flex-direction: column;">
+                    <div style="height: 28px; min-height: 28px; display: flex; align-items: center; justify-content: flex-end; padding: 0 6px; box-sizing: border-box; background: #c6cbd1;">
+                        <button
+                            id="legacyLeaderboardButton"
+                            onclick="toggleLegacyLeaderboards()"
+                            style="font-size: 0.7em; padding: 2px 6px; width: auto; height: auto;"
+                        >Legacy leaderboards</button>
+                    </div>
+                    <div style="display: flex; flex-grow: 1; min-height: 0;" id="leaderboard">
+                        <div style="width: 100%;" class="leaderboardSection">
+                            <j style="height: 5%;">Most Stars</j>
+                            <div class="leaderboardContent"></div>
+                        </div>
+                        <div style="width: 100%;" class="leaderboardSection">
+                            <j style="height: 5%;">Highest Level</j>
+                            <div class="leaderboardContent"></div>
+                        </div>
+                        <div style="width: 100%;" class="leaderboardSection">
+                            <j style="height: 5%;">Most Kills</j>
+                            <div class="leaderboardContent"></div>
+                        </div>
+                        <!-- <div style="width: 100%;" class="leaderboardSection">
+                            <j style="height: 5%;">Total Kills</j>
+                            <div class="leaderboardContent"></div>
+                        </div> -->
+                    </div>
+                </div>
+
+                <div id="missionsContainer" style="visibility: hidden; width: 0; height: 0; overflow-y: scroll; overflow-x: hidden;">
+                    <div id="missionContent" style="width: 100%;">
+
+                    </div>
+                    <!-- <h1>Daily Missions</h1>
+
+                    
+                    <h1>Grand Campaign</h1> -->
+                    
+
+                </div>
+
+                <div id="eventContainer" style="visibility: hidden; width: 0; height: 0;">
+                    <div style="width: 70%;" id="events"></div>
+                    <div style="width: 30%;">
+                        <iframe src="https://news.realmz.io/embed.html" style="width: 100%; height: 100%; padding: 40px; border: none; box-sizing: border-box;"></iframe>
+                    </div>
+                </div>
+
+                <div id="shopContainer" style="visibility: hidden; width: 0; height: 0; overflow-y: scroll;">
+                    <div id="stickyCurrencyInfo">
+                        <z id="coinsDisplayShop">0</z> <img class="icon" src="https://realmz.io/images/coins.png"></img> <div style="width: 30px;"></div> <z id="erthiumDisplayShop">0</z> <img class="icon" src="https://realmz.io/images/erthium.png"></img>
+                    </div>
+
+                    <div id="shopContent" style="width: 100%;">
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- ACCOUNTS BOX -->
+            <!-- <button onclick="testvid()" style="z-index: 190231094901251;">asjdjasdjafkh</button> -->
+            <div id="titleTopBar" style="display: none;">
+                <div id="ACCOUNT_LOGIN" class="titleAccountState">
+                    <button class="accountSummaryButton" onclick="toggleAccountPanel()">
+                        <i class="bi bi-person-circle"></i>
+                        <span>Login / Sign up</span>
+                    </button>
+                    <div id="accountLoginPanel" class="accountLoginPanel">
+                        <div class="accountPanelHeading" id="accountTitleText">Login</div>
+                        <div id="accountInputBox1" class="accountInputBox">
+                            <input type="text" placeholder="Username" class="input" id="nameLogin">
+                            <input type="password" placeholder="Password" class="input" id="passLogin">
+                            <div id="accountButtons">
+                                <button onclick="login()" class="blueTheme">Log In</button>
+                                <button class="blueTheme" onclick="openRegister()">Sign up</button>
+                            </div>
+                            <p id="accountErrorBox"></p>
+                        </div>
+                        <p class="accountPanelHint">Save progress, earn coins, and unlock skins.</p>
+                    </div>
+                </div>
+
+                <div id="ACCOUNT_LOGGED_IN" class="titleAccountState" style="visibility: hidden; position: absolute;">
+                    <button class="accountSummaryButton" onclick="cosmetics(1)" title="Open account">
+                        <i class="bi bi-person-circle"></i>
+                        <b id="account_username">Account</b>
+                    </button>
+                    <button class="titleLogoutButton" onclick="logout()">Log out</button>
+                </div>
+
+                <div class="titleTopActions">
+                    <a class="titleDiscordLink" href="https://discord.gg/9UtQHeEy73" target="_blank" rel="noopener">
+                        <i class="bi bi-discord"></i> Discord
+                    </a>
+                    <button class="titleSettingsButton" onclick="settings()" aria-label="Settings" title="Settings">
+                        <i class="bi bi-gear-fill"></i>
+                    </button>
+                </div>
+            </div>
+
+            <aside id="accountStatsPanel" aria-label="Account statistics">
+                <div class="accountStatsHeading">Account stats</div>
+                <div id="accountLogginText">Log in to see your stats.</div>
+            </aside>
+
+            <!-- MIDDLE ONE -->
+            <main class="titleScreenbox2" id="MAIN_BOX">
+
+
+                <!--<b>erth2</b>-->
+                <img id="nameplate" src="https://realmz.io/images/realmz.png" style="width: 100%; transform: translateY(0); filter: drop-shadow(0px 8px 5px rgba(0, 0, 0, 0.7)); width: 85%;"></img>
+
+
+                <div id="titleButtons">
+                    <div id="playControls">
+                        <input type="text" placeholder="Enter name" class="input" id="name">
+                        <button id="play">Play</button>
+                    </div>
+                    <div id="cgStats" style="display: none;" aria-label="CrazyGames statistics">
+                        <div>Highest level: <span id="cgHighestLevel">0</span></div>
+                        <div>Weapons discovered <span id="cgWeaponsDiscovered">0</span>/<span id="cgTotalWeapons">0</span></div>
+                    </div>
+                    <p id="gamemodePrompt" style="display: "";">Gamemodes:</p>
+                    <div id="serverCards" aria-label="Server selection" style="display: "";">
+                        <div class="server-card server-card-loading">
+                            <div class="server-card-overlay">
+                                <p class="server-card-title">Server Select</p>
+                                <p class="server-card-name">Loading servers...</p>
+                                <p class="server-card-count">0 players</p>
+                                <p class="server-card-description">Finding available realms.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <select name="NA_1" id="serverSelect">
+                        <option>None</option>
+                    </select>
+                </div>
+
+            </main>
+
+            <nav id="titleFooter" aria-label="Site links" >
+                <div id="titleFooterLinks">
+                    <button class="menuButton mainButton" onclick="document.getElementById('slideShowContainer').style.visibility = 'visible';">Help</button>
+                    <button class="menuButton mainButton" onclick="settings()">Settings</button>
+                    <a class="menuButton mainButton" href="https://realmz.io/contact" style="display: "";">Contact</a>
+                    <a class="menuButton mainButton" href="https://realmz.io/about" style="display: "";">About</a>
+                    <a class="menuButton mainButton" href="https://realmz.io/partners" style="display: "";">Partners</a>
+                    <a class="menuButton mainButton" href="https://realmz.io/tos.html" >TOS</a>
+                </div>
+                <div id="socials" aria-label="Social media" style="display: "";">
+                    <a href="https://www.instagram.com/futurepearstudios/">
+                        <i class="bi bi-instagram"></i>
+                    </a>
+                    <a href="https://discord.gg/9UtQHeEy73">
+                        <i class="bi bi-discord"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@FuturePearStudios">
+                        <i class="bi bi-youtube"></i>
+                    </a>
+                    <a href="#">
+                        <i class="bi bi-tiktok"></i>
+                    </a>
+                </div>
+            </nav>
+
+            <aside class="titleScreenbox3" id="CHANGE_BOX" style="display: "";">
+                <div style="width: 100%;">
+                    <div class="titleBox1 " style="background: var(--primaryDark); height: 100%; z-index: 290;"><h3 style="padding: 0; margin: 0; font-weight: 1000;"><a href="https://news.realmz.io/" style="color: white;">News</a></h3></div>
+                </div>
+
+                <div id="changeLogBox" style="height: 100%;">
+                    <iframe src="https://news.realmz.io/embed.html" style="width: 100%; height: 100%; padding: 5px; border: none;"></iframe>
+                </div>
+
+                <div style="width: 100%;background: var(--secondary);">
+                    <div style="width: 100%; height: 6px; background: var(--primary);"></div>
+
+                    <button class="mainButton2"><a href="https://realmz.io//changelog">full changelog (v3.2)</a></button>
+                    <button class="mainButton2"><a href="https://realmz.io/tos.html">TOS & Privacy Policy</a></button>
+                    <div style="width: 100%; height: 6px; background: var(--primary);"></div>
+                </div>
+
+
+            </aside>
+
+        </div>
+
+    </div>
+
+    <!-- THIS WAS FOR MOBILE, KEEP HERE JUST INCASE WE WANT IT BACK -->
+    <!-- <script>
+        const module = {};
+
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", function () {
+
+                navigator.serviceWorker
+                    .register("serviceWorker.js", { scope: './' })
+                    .then((res) => { console.log("service worker registered"); })
+                    .catch((err) => { console.log("service worker not registered", err); })
+            });
+        }
+    </script> -->
+
+    <script>
+        const CLIENT_TYPE = "v1";
+    </script>
+    <script>
+        // Local static builds use the game's production WebSocket server.
+        // This is a client connection target, not a backend hosted by Live Server.
+        window.REALMZ_LOCAL_SERVER = "wss://na.realmz.io";
+        window.REALMZ_BUILD_VERSION = "v3.2";
+        window.AUTO_SERVER_SELECTION = false;
+    </script>
+    <script src="pm_shared.js" type="text/javascript"></script>
+    <script src="client_deobfuscated.js" type="text/javascript"></script>
+
+</body>
+    </html>
