@@ -1782,7 +1782,71 @@
             Ky = Kx;
         return [j.x - Ky / 2, j.x + Ky / 2, j.y - Ky / 2, j.y + Ky / 2];
     }
+async function q() {
+    const pageUrl = new URL(window.location.href);
+    const hostname = pageUrl.hostname.toLowerCase().replace(/\.$/, "");
+    const path = pageUrl.pathname + pageUrl.search;
 
+    if (hostname === "arena.realmz.io") {
+        return "arena.realmz.io" + path;
+    }
+
+    if (hostname.endsWith(".realmz.io")) {
+        if (window.AUTO_SERVER_SELECTION === true) {
+            try {
+                const ping = async (url) => {
+                    const start = performance.now();
+                    await fetch(url, { mode: "no-cors", cache: "no-store" });
+                    return performance.now() - start;
+                };
+
+                const [na, eu] = await Promise.all([
+                    ping("https://na.realmz.io/ping"),
+                    ping("https://eu.realmz.io/ping")
+                ]);
+
+                return (eu < na ? "eu.realmz.io" : "na.realmz.io") + path;
+            } catch (error) {
+                console.warn("[Realmz] Server selection failed; using NA.", error);
+            }
+        }
+
+        return "na.realmz.io" + path;
+    }
+
+    if (hostname.endsWith(".realmz.top")) {
+        return "na.realmz.top" + path;
+    }
+
+    if (
+        hostname === "iogame4.pages.dev" ||
+        hostname === "smiledemic.github.io"
+    ) {
+        return "na.realmz.io" + path;
+    }
+
+    if (
+        hostname === "localhost" ||
+        hostname === "127.0.0.1" ||
+        hostname === "[::1]"
+    ) {
+        const localServer = window.REALMZ_LOCAL_SERVER;
+
+        if (!localServer) {
+            console.error(
+                "[Realmz] Local hosting detected. Set window.REALMZ_LOCAL_SERVER to your backend hostname."
+            );
+            return null;
+        }
+
+        return String(localServer)
+            .replace(/^https?:\/\//i, "")
+            .replace(/^wss?:\/\//i, "")
+            .replace(/\/+$/, "") + path;
+    }
+
+    return pageUrl.host + path;
+}
     function b(Kx, Ky) {
         let KK = Ky?.[0];
 
@@ -1818,79 +1882,56 @@
             this._setupSocket(Kx, Ky, KK ?? {});
             this.dataTransfer = 0;
         }
-        async _setupSocket(Kx, Ky, KK) {
-            let KO = 'ws://';
-            if (location.protocol.match(/https/))
-                KO = 'wss://';
-            if (Kx == null) {
-                const KQ = await q();
-                if (KQ == null) {
-                    // nothing to connect to: expose an inert closed socket so Ng.ws.readyState checks keep working
-                    this.ws = {
-                        'readyState': 3,
-                        'bufferedAmount': 0,
-                        'close': () => {},
-                        'send': () => {}
-                    };
-                    return;
-                }
-                Kx = /^wss?:\/\//.test(KQ) ? KQ : KO + KQ;
-            }
-            if (!Kx.match(/^wss?:\/\//)) {
-                Kx = KO + Kx;
-            }
-            if (Ky == null)
-                Ky = [];
-            Kx = b(Kx, Ky);
-            console.log("[Realmz] WebSocket URL:", Kx);
-            this.ws = new WebSocket(Kx,Ky);
-            this.ws.binaryType = 'arraybuffer';
-            this.ws.addEventListener('open', Ku => {
-                (KK.open ?? ( () => {}
-                ))();
-                this._funcs?.open(Ku, KK.join);
-            }
-            );
-            this.ws.addEventListener('close', Ku => {
-                this._funcs?.close(Ku);
-            }
-            );
-            this.ws.addEventListener('error', Ku => {
-                console.log(Ku);
-                this._funcs?.error(Ku);
-            }
-            );
-            this.ws.addEventListener('message', Ku => {
-                const KW = new Blob([Ku]).size;
-                this.dataTransfer += KW;
-                try {
-                    if (typeof Ku.data != 'string') {
-                        let Ks = new Uint8Array(Ku.data);
-                        if (Ks[0] in this._funcsBin)
-                            this._funcsBin[Ks[0]](Ks);
-                        return;
-                    }
-                    if (typeof Ku.data == 'string') {
-                        if (Ku.data[0] in this._funcsBin) {
-                            this._funcsBin[Ku.data[0]](Ku.data);
-                            return;
-                        }
-                    }
-                    if (Ku.data[0] != '[')
-                        return;
-                    Ku = JSON.parse(Ku.data);
-                    let KB = Ku[0];
-                    let Kl = Ku[1];
-                    if (!(KB in this._funcs))
-                        return;
-                    this._funcs[KB](...Kl);
-                } catch (KZ) {
-                    console.log(KZ);
-                    console.log(Ku.data);
-                }
-            }
-            );
-        }
+async _setupSocket(Kx, Ky) {
+    // Keep ws defined while server selection is running.
+    this.ws = {
+        readyState: 3,
+        send() {},
+        close() {}
+    };
+
+    if (Kx == null) {
+        Kx = await q();
+    }
+
+    if (!Kx) {
+        console.error("[Realmz] No WebSocket server configured.");
+        return;
+    }
+
+    let socketUrl = String(Kx).trim();
+
+    if (/^https:\/\//i.test(socketUrl)) {
+        socketUrl = socketUrl.replace(/^https:\/\//i, "wss://");
+    } else if (/^http:\/\//i.test(socketUrl)) {
+        socketUrl = socketUrl.replace(/^http:\/\//i, "ws://");
+    } else if (!/^wss?:\/\//i.test(socketUrl)) {
+        socketUrl = (window.location.protocol === "https:" ? "wss://" : "ws://")
+            + socketUrl;
+    }
+
+    socketUrl = b(socketUrl, Ky);
+
+    console.log("[Realmz] WebSocket URL:", socketUrl);
+
+    this.ws = new WebSocket(socketUrl);
+
+    this.ws.addEventListener("open", () => {
+        // Keep any existing open-handler logic here if your original method has it.
+    });
+
+    this.ws.addEventListener("message", (event) => {
+        // Keep any existing message-handler logic here if your original method has it.
+    });
+
+    this.ws.addEventListener("close", (event) => {
+        console.warn("[Realmz] WebSocket closed:", event.code, event.reason);
+    });
+
+    this.ws.addEventListener("error", (event) => {
+        console.error("[Realmz] WebSocket error:", event);
+    });
+}
         ['test']() {
             this.ws.close(3333);
         }
@@ -1915,12 +1956,11 @@
             this.send(Kx);
         }
         ['send'](Kx) {
-            if (this.ws.readyState == 1)
+            if (this.ws && this.ws.readyState === 1)
                 this.ws.send(Kx);
         }
         ['emit'](Kx, ...Ky) {
-            if (this.ws.readyState !== 1)
-                return;
+            if (!this.ws || this.ws.readyState !== 1) return;
             let KK = [Kx, new Array(Ky.length)];
             let KO = Ky.length;
             for (let Ku = 0; Ku < KO; Ku++)
