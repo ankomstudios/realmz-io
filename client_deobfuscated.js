@@ -1822,7 +1822,7 @@ async function q() {
         hostname === "iogame4.pages.dev" ||
         hostname === "smiledemic.github.io"
     ) {
-        return "na.realmz.io" + path;
+        return "na.realmz.io";
     }
 
     if (
