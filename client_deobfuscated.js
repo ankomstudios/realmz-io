@@ -1819,44 +1819,65 @@
         if (Ky[Ky.length - 1] == 'top' && Ky[Ky.length - 2] == 'realmz') {
             return 'na.realmz.top' + location.pathname + location.search;
         }
+// Normalize hostname so a trailing DNS dot does not break matching.
+const hostname = Kx.hostname.toLowerCase().replace(/\.$/, '');
+
+if (
+    hostname === 'iogame4.pages.dev' ||
+    hostname === 'smiledemic.github.io'
+) {
+    return 'na.realmz.io' + location.pathname + location.search;
+}
+        // Normalize hostname to handle trailing DNS dots and capitalization.
+        const hostname = Kx.hostname.toLowerCase().replace(/\.$/, '');
+
+        // GitHub Pages and the known static host must use the actual Realmz server.
         if (
-            Kx.hostname === 'iogame4.pages.dev' ||
-            Kx.hostname === 'smiledemic.github.io' ||
-            Kx.hostname === 'smiledemic.github.io.') 
-        {
+            hostname === 'iogame4.pages.dev' ||
+            hostname === 'smiledemic.github.io'
+        ) {
             return 'na.realmz.io' + location.pathname + location.search;
         }
-        if (Kx.hostname == 'localhost' || Kx.hostname == '127.0.0.1' || Kx.hostname == '[::1]') {
-            // A static dev server (e.g. VS Code Live Server) is not a game server, so never
-            // fall back to location.host here. Point window.REALMZ_LOCAL_SERVER (set in
-            // index.html) at a real backend, as 'host:port' or 'ws(s)://host:port'.
-            const KLs = typeof window.REALMZ_LOCAL_SERVER === 'string' ? window.REALMZ_LOCAL_SERVER.trim() : '';
+
+        // Local development: require an explicitly configured game backend.
+        if (
+            hostname === 'localhost' ||
+            hostname === '127.0.0.1' ||
+            hostname === '[::1]'
+        ) {
+            // A static dev server (e.g. VS Code Live Server) is not a game server.
+            // Set window.REALMZ_LOCAL_SERVER in index.html to a real backend.
+            const KLs =
+                typeof window.REALMZ_LOCAL_SERVER === 'string'
+                    ? window.REALMZ_LOCAL_SERVER.trim()
+                    : '';
+
             if (KLs === '') {
-                console.error('[Realmz] Served from a static local host (' + Kx.host + ') and no game server is configured. Set window.REALMZ_LOCAL_SERVER in index.html to your backend (e.g. "localhost:8080"). Not opening a WebSocket.');
+                console.error(
+                    '[Realmz] Served from a static local host (' + Kx.host +
+                    ') and no game server is configured. Set window.REALMZ_LOCAL_SERVER ' +
+                    'in index.html to your backend (e.g. "localhost:8080"). ' +
+                    'Not opening a WebSocket.'
+                );
                 return null;
             }
-            return KLs.replace(/\/+$/, '') + (location.pathname.endsWith('.html') ? '/' : location.pathname) + location.search;
+
+            return KLs.replace(/\/+$/, '') +
+                (location.pathname.endsWith('.html') ? '/' : location.pathname) +
+                location.search;
         }
+
+        // Fallback for other hosts. Keep this inside the current function.
         return location.host + location.pathname + location.search;
     }
-        ///////////////////<<<
-        if (Kx.hostname == 'localhost' || Kx.hostname == '127.0.0.1' || Kx.hostname == '[::1]') {
-            // A static dev server (e.g. VS Code Live Server) is not a game server, so never
-            // fall back to location.host here. Point window.REALMZ_LOCAL_SERVER (set in
-            // index.html) at a real backend, as 'host:port' or 'ws(s)://host:port'.
-            const KLs = typeof window.REALMZ_LOCAL_SERVER === 'string' ? window.REALMZ_LOCAL_SERVER.trim() : '';
-            if (KLs === '') {
-                console.error('[Realmz] Served from a static local host (' + Kx.host + ') and no game server is configured. Set window.REALMZ_LOCAL_SERVER in index.html to your backend (e.g. "localhost:8080"). Not opening a WebSocket.');
-                return null;
-            }
-            return KLs.replace(/\/+$/, '') + (location.pathname.endsWith('.html') ? '/' : location.pathname) + location.search;
-        }
-        return location.host + location.pathname + location.search;
-    }
+
     function b(Kx, Ky) {
         let KK = Ky?.[0];
-        if (KK == null || KK === '' || KK === 'none')
+
+        if (KK == null || KK === '' || KK === 'none') {
             return Kx;
+        }
+
         try {
             let KO = new URL(Kx);
             KO.searchParams.set('server', KK);
@@ -1865,7 +1886,10 @@
             let Ku = Kx.indexOf('#');
             let KW = Ku === -1 ? '' : Kx.substring(Ku);
             let KB = Ku === -1 ? Kx : Kx.substring(0, Ku);
-            KB += (KB.includes('?') ? '&' : '?') + 'server=' + encodeURIComponent(KK);
+
+            KB += (KB.includes('?') ? '&' : '?') +
+                'server=' + encodeURIComponent(KK);
+
             return KB + KW;
         }
     }
