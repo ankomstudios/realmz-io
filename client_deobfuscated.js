@@ -1819,9 +1819,27 @@
         if (Ky[Ky.length - 1] == 'top' && Ky[Ky.length - 2] == 'realmz') {
             return 'na.realmz.top' + location.pathname + location.search;
         }
-        if (Kx.hostname == 'iogame4.pages.dev') {
+        if (
+            Kx.hostname === 'iogame4.pages.dev' ||
+            Kx.hostname === 'smiledemic.github.io' ||
+            Kx.hostname === 'smiledemic.github.io.') 
+        {
             return 'na.realmz.io' + location.pathname + location.search;
         }
+        if (Kx.hostname == 'localhost' || Kx.hostname == '127.0.0.1' || Kx.hostname == '[::1]') {
+            // A static dev server (e.g. VS Code Live Server) is not a game server, so never
+            // fall back to location.host here. Point window.REALMZ_LOCAL_SERVER (set in
+            // index.html) at a real backend, as 'host:port' or 'ws(s)://host:port'.
+            const KLs = typeof window.REALMZ_LOCAL_SERVER === 'string' ? window.REALMZ_LOCAL_SERVER.trim() : '';
+            if (KLs === '') {
+                console.error('[Realmz] Served from a static local host (' + Kx.host + ') and no game server is configured. Set window.REALMZ_LOCAL_SERVER in index.html to your backend (e.g. "localhost:8080"). Not opening a WebSocket.');
+                return null;
+            }
+            return KLs.replace(/\/+$/, '') + (location.pathname.endsWith('.html') ? '/' : location.pathname) + location.search;
+        }
+        return location.host + location.pathname + location.search;
+    }
+        ///////////////////<<<
         if (Kx.hostname == 'localhost' || Kx.hostname == '127.0.0.1' || Kx.hostname == '[::1]') {
             // A static dev server (e.g. VS Code Live Server) is not a game server, so never
             // fall back to location.host here. Point window.REALMZ_LOCAL_SERVER (set in
