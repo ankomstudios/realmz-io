@@ -1,3 +1,4 @@
+![Realmz.io — Floating Islands Adventure](documentation/readme/banner.png)
 ## WebSocket Hosting Configuration (Important for Forks)
 
 If you fork this repository and host the build under your own GitHub Pages URL or another domain, make sure to update the WebSocket host-selection logic in `client_deobfuscated.js`.
