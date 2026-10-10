@@ -1929,6 +1929,26 @@ async _setupSocket(Kx, Ky, KK) {
     // IMPORTANT: Keep Ky as the second argument.
     // This supplies Sec-WebSocket-Protocol during the handshake.
     this.ws = new WebSocket(Kx, Ky);
+    this.ws.addEventListener('open', () => {
+    console.log('[Realmz WS] Connected:', this.ws.url);
+    console.log('[Realmz WS] Negotiated protocol:', this.ws.protocol);
+});
+
+this.ws.addEventListener('error', () => {
+    console.error('[Realmz WS] Connection error:', {
+        url: this.ws.url,
+        readyState: this.ws.readyState,
+        protocolsRequested: Ky
+    });
+});
+
+this.ws.addEventListener('close', event => {
+    console.error('[Realmz WS] Closed:', {
+        code: event.code,
+        reason: event.reason,
+        clean: event.wasClean
+    });
+});
     this.ws.binaryType = 'arraybuffer';
 
     this.ws.addEventListener('open', Ku => {
