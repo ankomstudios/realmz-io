@@ -1867,6 +1867,102 @@ async function q() {
         .replace(/^wss?:\/\//i, "")
         .replace(/\/+$/, "");
 }
+    // ---------------------------------------------------------------
+    // OFFLINE MOD
+    // Enable with  ?offline=1  in the URL, window.REALMZ_OFFLINE = true
+    // (index.html), or localStorage.setItem('realmz-offline','1').
+    // Replaces the network WebSocket with a local stub so the client gets past
+    // "Connecting / Reconnecting..." without any game server. It answers the
+    // handshake (open, ping, joinGame -> init) and logs EVERY message the client
+    // sends as "[Realmz OFFLINE] <-" so you can see what the real server would
+    // be asked. Map/asset files are still loaded from GAME_ASSET_BASE.
+    // Console helpers:  realmzOffline.emit(name, ...args)  push a server event
+    //                   realmzOffline.log                    array of sent msgs
+    // Tweak the fake init with window.REALMZ_OFFLINE_INIT = {map, w, h, mode,
+    // server, settings:{...}} before client_deobfuscated.js loads.
+    // ---------------------------------------------------------------
+    function realmzOfflineEnabled() {
+        try {
+            if (window.REALMZ_OFFLINE === true) return true;
+            if (/[?&]offline(=1|=true|&|$)/i.test(location.search)) return true;
+            return localStorage.getItem('realmz-offline') === '1';
+        } catch (e) {
+            return false;
+        }
+    }
+    const realmzOffline = window.realmzOffline = { log: [], sockets: [], emit(name, ...args) {
+        const s = this.sockets[this.sockets.length - 1];
+        if (!s) return console.warn('[Realmz OFFLINE] no active socket');
+        s._push(JSON.stringify([name, args]));
+    } };
+    class OfflineWS extends EventTarget {
+        constructor(url, protocols) {
+            super();
+            this.url = url;
+            this.protocol = Array.isArray(protocols) ? (protocols[0] || '') : (protocols || '');
+            this.readyState = 0;
+            this.bufferedAmount = 0;
+            this.binaryType = 'arraybuffer';
+            realmzOffline.sockets.push(this);
+            console.warn('[Realmz OFFLINE] using local stub socket instead of', url);
+            setTimeout(() => {
+                if (this.readyState !== 0) return;
+                this.readyState = 1;
+                this.dispatchEvent(new Event('open'));
+            }, 50);
+        }
+        _push(data) {
+            setTimeout(() => {
+                if (this.readyState === 1) this.dispatchEvent(new MessageEvent('message', { data }));
+            }, 0);
+        }
+        send(data) {
+            if (this.readyState !== 1) return;
+            if (typeof data !== 'string') {
+                realmzOffline.log.push(['<binary>', data]);
+                console.log('[Realmz OFFLINE] <- binary', data);
+                return;
+            }
+            let msg;
+            try { msg = JSON.parse(data); } catch (e) { return; }
+            const name = msg[0], args = msg[1] || [];
+            realmzOffline.log.push([name, args]);
+            console.log('[Realmz OFFLINE] <-', JSON.stringify(name), args);
+            // joinGame is emitted with a zero-width space in its name.
+            const clean = String(name).replace(/[​-‍﻿]/g, '');
+            if (name === 'ping') {
+                this._push(JSON.stringify(['ping', [args[0]]]));
+            } else if (clean === 'joinGame' || name === 'load') {
+                if (this._joined && clean === 'joinGame') return;
+                if (clean === 'joinGame') this._joined = true;
+                if (clean === 'joinGame') this._init(args[0] || {});
+            }
+        }
+        _init(join) {
+            const c = window.REALMZ_OFFLINE_INIT || {};
+            const meta = Object.assign({
+                uuid: 'offline-' + Math.random().toString(36).slice(2),
+                reconnectToken: 'offline',
+                w: c.w ?? 8000,
+                h: c.h ?? 8000,
+                name: c.map ?? window.REALMZ_OFFLINE_MAP ?? 'main',
+                caveStart: 7000
+            }, c.settings || {});
+            const init = ['init', [meta, '', c.server ?? 'Offline', null, {}, c.mode ?? 'FFA', [], {}]];
+            // init args: (meta, mapText, server, _, players, mode, mobs, items)
+            // mapText '' => Nn() fetches /map/<name>/map.erthmap itself.
+            init[1][1] = ''; init[1][3] = undefined;
+            console.log('[Realmz OFFLINE] -> init', init[1]);
+            this._push(JSON.stringify(init));
+        }
+        close(code, reason) {
+            if (this.readyState === 3) return;
+            this.readyState = 3;
+            const ev = new Event('close');
+            ev.code = code ?? 1000; ev.reason = reason ?? ''; ev.wasClean = true;
+            this.dispatchEvent(ev);
+        }
+    }
     function b(Kx, Ky) {
         let KK = Ky?.[0];
 
@@ -1948,7 +2044,7 @@ async _setupSocket(Kx, Ky, KK) {
 
     // IMPORTANT: Keep Ky as the second argument.
     // This supplies Sec-WebSocket-Protocol during the handshake.
-    this.ws = new WebSocket(Kx, Ky);
+    this.ws = realmzOfflineEnabled() ? new OfflineWS(Kx, Ky) : new WebSocket(Kx, Ky);
     this.ws.addEventListener('open', () => {
     console.log('[Realmz WS] Connected:', this.ws.url);
     console.log('[Realmz WS] Negotiated protocol:', this.ws.protocol);
