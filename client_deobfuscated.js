@@ -185,6 +185,17 @@
                 KK = Ky.protocol + '//api.realmz.top';
             }
         }
+        const isRealmzHost = (KO[KO.length - 2] == 'realmz' && (KO[KO.length - 1] == 'io' || KO[KO.length - 1] == 'top'));
+        const isLocalHost = (Ky.hostname == 'localhost' || Ky.hostname == '127.0.0.1' || Ky.hostname == '[::1]');
+        if (!isRealmzHost && !isLocalHost) {
+            // External static host (github.io, pages.dev, custom domain...):
+            // API lives on Realmz's API host, not on the static site.
+            if (Kx) {
+                KK = 'https://realmz.io';
+            } else {
+                KK = 'https://api.realmz.io';
+            }
+        }
         if (Ky.hostname == 'iogame4.pages.dev') {
             if (Kx) {
                 KK = Ky.protocol + '//realmz.io';
@@ -1845,7 +1856,16 @@ async function q() {
             .replace(/\/+$/, "") + path;
     }
 
-    return pageUrl.host + path;
+    // Any other hostname is an external static host (GitHub Pages, Netlify,
+    // Cloudflare Pages, a custom domain, ...). It does not run the game server,
+    // so never fall back to the page's own host: that opens a WebSocket against
+    // a static site and leaves the game stuck on "Reconnecting...".
+    // Override with window.REALMZ_LOCAL_SERVER in index.html if needed.
+    const externalServer = window.REALMZ_LOCAL_SERVER || "na.realmz.io";
+    return String(externalServer)
+        .replace(/^https?:\/\//i, "")
+        .replace(/^wss?:\/\//i, "")
+        .replace(/\/+$/, "");
 }
     function b(Kx, Ky) {
         let KK = Ky?.[0];
