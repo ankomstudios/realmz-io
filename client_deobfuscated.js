@@ -1868,6 +1868,47 @@ async function q() {
         .replace(/\/+$/, "");
 }
     // ---------------------------------------------------------------
+    // CONNECTION FAILURE GUARD: when the real server can't be reached, ask the
+    // player (modal) whether to retry or switch to the offline mod.
+    // ---------------------------------------------------------------
+    let realmzPromptOpen = false;
+    function realmzConnectionPrompt(info, onRetry, onOffline) {
+        if (realmzPromptOpen) return;
+        realmzPromptOpen = true;
+        const wrap = document.createElement('div');
+        wrap.id = 'realmz-conn-modal';
+        wrap.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.6);font-family:sans-serif;';
+        const box = document.createElement('div');
+        box.style.cssText = 'background:#1f2430;color:#fff;max-width:420px;width:90%;padding:22px;border-radius:12px;box-shadow:0 10px 40px rgba(0,0,0,.6);';
+        const h = document.createElement('h2');
+        h.textContent = 'Can’t reach the game server';
+        h.style.cssText = 'margin:0 0 10px;font-size:20px;';
+        const msg = document.createElement('p');
+        msg.style.cssText = 'margin:0 0 8px;line-height:1.4;font-size:14px;';
+        msg.textContent = 'The connection to ' + info.url + ' failed' +
+            (info.reason ? ' (' + info.reason + ')' : '') + '. The server may be down or may not allow this website.';
+        const q2 = document.createElement('p');
+        q2.style.cssText = 'margin:0 0 16px;line-height:1.4;font-size:14px;';
+        q2.textContent = 'Would you like to play in offline mode instead? Offline mode uses a local stand-in for the server, so it is limited and nothing is saved online.';
+        const row = document.createElement('div');
+        row.style.cssText = 'display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;';
+        const mk = (label, bg, fn) => {
+            const b = document.createElement('button');
+            b.textContent = label;
+            b.style.cssText = 'padding:8px 14px;border:0;border-radius:8px;cursor:pointer;font-size:14px;color:#fff;background:' + bg + ';';
+            b.onclick = () => { wrap.remove(); realmzPromptOpen = false; fn && fn(); };
+            return b;
+        };
+        row.append(
+            mk('Dismiss', '#4a5163'),
+            mk('Retry', '#2d6cdf', onRetry),
+            mk('Use offline mode', '#2e9e5b', onOffline)
+        );
+        box.append(h, msg, q2, row);
+        wrap.append(box);
+        document.body.appendChild(wrap);
+    }
+    // ---------------------------------------------------------------
     // OFFLINE MOD
     // Enable with  ?offline=1  in the URL, window.REALMZ_OFFLINE = true
     // (index.html), or localStorage.setItem('realmz-offline','1').
@@ -2008,6 +2049,7 @@ async function q() {
             this.dataTransfer = 0;
         }
 async _setupSocket(Kx, Ky, KK) {
+    const realmzOrigArgs = [Kx, Ky, KK];
     let KO = 'ws://';
 
     if (location.protocol.match(/https/)) {
@@ -2045,6 +2087,26 @@ async _setupSocket(Kx, Ky, KK) {
     // IMPORTANT: Keep Ky as the second argument.
     // This supplies Sec-WebSocket-Protocol during the handshake.
     this.ws = realmzOfflineEnabled() ? new OfflineWS(Kx, Ky) : new WebSocket(Kx, Ky);
+    {
+        const guardedWs = this.ws;
+        const isOffline = guardedWs instanceof OfflineWS;
+        let everOpened = false;
+        guardedWs.addEventListener('open', () => { everOpened = true; });
+        guardedWs.addEventListener('close', ev => {
+            if (isOffline || everOpened || this.ws !== guardedWs) return;
+            if (ev.code === 1000 || ev.code === 3333) return;
+            setTimeout(() => {
+                realmzConnectionPrompt(
+                    { url: guardedWs.url, reason: 'code ' + ev.code + (ev.reason ? ': ' + ev.reason : '') },
+                    () => this._setupSocket(...realmzOrigArgs),
+                    () => {
+                        window.REALMZ_OFFLINE = true;
+                        this._setupSocket(...realmzOrigArgs);
+                    }
+                );
+            }, 300);
+        });
+    }
     this.ws.addEventListener('open', () => {
     console.log('[Realmz WS] Connected:', this.ws.url);
     console.log('[Realmz WS] Negotiated protocol:', this.ws.protocol);
